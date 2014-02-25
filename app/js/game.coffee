@@ -38,6 +38,18 @@ $ ->
     for p in patternsToTest
       win = board[p[0]] if '' != board[p[0]] == board[p[1]] == board[p[2]]
 
+    loseCounter = 0
+    for i in WIN_PATTERNS
+      xoString = ' '
+      for j in i
+        xoString += board[j]
+      if (xoString.indexOf('x') > -1) && (xoString.indexOf('o') > -1)
+        loseCounter += 1
+      console.log(xoString + '**' + i + '**' + loseCounter)
+    if loseCounter == 8
+      alert 'UNWINNABLE GAME'
+      resetGame()
+
     if win != ''
       alert win + ' won!'
       resetGame()

@@ -24,7 +24,7 @@
       return $('#start-game').fadeIn(500);
     };
     checkForWin = function(cell) {
-      var board, p, patternsToTest, win, _i, _len, _ref, _ref1;
+      var board, i, j, loseCounter, p, patternsToTest, win, xoString, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
       win = '';
       board = ($('.board-cell').map(function(idx, el) {
         return $(el).text();
@@ -37,6 +37,23 @@
         if ((('' !== (_ref1 = board[p[0]]) && _ref1 === (_ref = board[p[1]])) && _ref === board[p[2]])) {
           win = board[p[0]];
         }
+      }
+      loseCounter = 0;
+      for (_j = 0, _len1 = WIN_PATTERNS.length; _j < _len1; _j++) {
+        i = WIN_PATTERNS[_j];
+        xoString = ' ';
+        for (_k = 0, _len2 = i.length; _k < _len2; _k++) {
+          j = i[_k];
+          xoString += board[j];
+        }
+        if ((xoString.indexOf('x') > -1) && (xoString.indexOf('o') > -1)) {
+          loseCounter += 1;
+        }
+        console.log(xoString + '**' + i + '**' + loseCounter);
+      }
+      if (loseCounter === 8) {
+        alert('UNWINNABLE GAME');
+        resetGame();
       }
       if (win !== '') {
         alert(win + ' won!');
