@@ -17,11 +17,48 @@ ticTacToe.constant 'Settings',
 class BoardCtrl
   constructor: (@$scope, @Settings) ->
     @$scope.cells = {}
+    @$scope.patternsToTest = @getPatterns()
     @$scope.mark = @mark
 
-  mark: (cell) =>
-    player = if Object.keys(@$scope.cells).length % 2 == 0 then 'x' else 'o'
-    @$scope.cells[cell] = player
+  getPatterns: =>
+    @Settings.WIN_PATTERNS.filter -> true
+
+  getRow: (pattern) =>
+    c = @$scope.cells
+    c0 = c[pattern[0]] || pattern[0]
+    c1 = c[pattern[1]] || pattern[1]
+    c2 = c[pattern[2]] || pattern[2]
+    "#{c0}#{c1}#{c2}"
+
+  someoneWon: (row) ->
+    'xxx' == row || 'ooo' == row
+
+  resetBoard: =>
+    @$scope.cells = {}
+
+  numberOfMoves: =>
+    Object.keys(@$scope.cells).length
+
+  player: (options) =>
+    options ||= whoMovedLast: false
+    moves = @numberOfMoves() - (if options.whoMovedLast then 1 else 0)
+    if moves % 2 == 0 then 'x' else 'o'
+
+  announceWinner: =>
+    winner = @player(whoMovedLast: true)
+    alert "#{winner} wins!"
+
+  parseBoard: =>
+    @$scope.patternsToTest = @$scope.patternsToTest.filter (pattern) =>
+      row = @getRow(pattern)
+      @announceWinner() if @someoneWon(row)
+      true
+
+  mark: (@$event) =>
+    cell = @$event.target.dataset.index
+    @$scope.cells[cell] = @player()
+    @parseBoard()
+
 
 BoardCtrl.$inject = ["$scope", "Settings"]
 ticTacToe.controller "BoardCtrl", BoardCtrl

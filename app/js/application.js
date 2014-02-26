@@ -15,14 +15,85 @@
       this.$scope = $scope;
       this.Settings = Settings;
       this.mark = __bind(this.mark, this);
+      this.parseBoard = __bind(this.parseBoard, this);
+      this.announceWinner = __bind(this.announceWinner, this);
+      this.player = __bind(this.player, this);
+      this.numberOfMoves = __bind(this.numberOfMoves, this);
+      this.resetBoard = __bind(this.resetBoard, this);
+      this.getRow = __bind(this.getRow, this);
+      this.getPatterns = __bind(this.getPatterns, this);
       this.$scope.cells = {};
+      this.$scope.patternsToTest = this.getPatterns();
       this.$scope.mark = this.mark;
     }
 
-    BoardCtrl.prototype.mark = function(cell) {
-      var player;
-      player = Object.keys(this.$scope.cells).length % 2 === 0 ? 'x' : 'o';
-      return this.$scope.cells[cell] = player;
+    BoardCtrl.prototype.getPatterns = function() {
+      return this.Settings.WIN_PATTERNS.filter(function() {
+        return true;
+      });
+    };
+
+    BoardCtrl.prototype.getRow = function(pattern) {
+      var c, c0, c1, c2;
+      c = this.$scope.cells;
+      c0 = c[pattern[0]] || pattern[0];
+      c1 = c[pattern[1]] || pattern[1];
+      c2 = c[pattern[2]] || pattern[2];
+      return "" + c0 + c1 + c2;
+    };
+
+    BoardCtrl.prototype.someoneWon = function(row) {
+      return 'xxx' === row || 'ooo' === row;
+    };
+
+    BoardCtrl.prototype.resetBoard = function() {
+      return this.$scope.cells = {};
+    };
+
+    BoardCtrl.prototype.numberOfMoves = function() {
+      return Object.keys(this.$scope.cells).length;
+    };
+
+    BoardCtrl.prototype.player = function(options) {
+      var moves;
+      options || (options = {
+        whoMovedLast: false
+      });
+      moves = this.numberOfMoves() - (options.whoMovedLast ? 1 : 0);
+      if (moves % 2 === 0) {
+        return 'x';
+      } else {
+        return 'o';
+      }
+    };
+
+    BoardCtrl.prototype.announceWinner = function() {
+      var winner;
+      winner = this.player({
+        whoMovedLast: true
+      });
+      return alert("" + winner + " wins!");
+    };
+
+    BoardCtrl.prototype.parseBoard = function() {
+      return this.$scope.patternsToTest = this.$scope.patternsToTest.filter((function(_this) {
+        return function(pattern) {
+          var row;
+          row = _this.getRow(pattern);
+          if (_this.someoneWon(row)) {
+            _this.announceWinner();
+          }
+          return true;
+        };
+      })(this));
+    };
+
+    BoardCtrl.prototype.mark = function($event) {
+      var cell;
+      this.$event = $event;
+      cell = this.$event.target.dataset.index;
+      this.$scope.cells[cell] = this.player();
+      return this.parseBoard();
     };
 
     return BoardCtrl;
