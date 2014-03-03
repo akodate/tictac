@@ -45,9 +45,19 @@
     };
 
     BoardCtrl.prototype.startGame = function() {
-      this.$scope.gameOn = true;
-      this.$scope.currentPlayer = this.player();
-      return this.resetBoard();
+      this.resetBoard();
+      if (this.unbind) {
+        this.unbind();
+      }
+      this.id = this.uniqueId();
+      this.dbRef = new Firebase("https://brilliant-fire-736.firebaseio.com/" + this.id);
+      this.db = this.$firebase(this.dbRef);
+      return this.db.$bind(this.$scope, 'cells').then((function(_this) {
+        return function(unbind) {
+          _this.unbind = unbind;
+          return _this.$scope.gameOn = true;
+        };
+      })(this));
     };
 
     BoardCtrl.prototype.getPatterns = function() {
@@ -74,17 +84,6 @@
       this.$scope.cats = false;
       this.cells = this.$scope.cells = {};
       this.winningCells = this.$scope.winningCells = {};
-      if (this.unbind) {
-        this.unbind();
-      }
-      this.id = this.uniqueId();
-      this.dbRef = new Firebase("https://brilliant-fire-736.firebaseio.com/" + this.id);
-      this.db = this.$firebase(this.dbRef);
-      this.db.$bind(this.$scope, 'cells').then((function(_this) {
-        return function(unbind) {
-          return _this.unbind = unbind;
-        };
-      })(this));
       this.$scope.currentPlayer = this.player();
       return this.getPatterns();
     };
