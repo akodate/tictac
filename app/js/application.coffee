@@ -20,11 +20,13 @@ class BoardCtrl
     @$scope.mark = @mark
     @$scope.startGame = @startGame
     @$scope.gameOn = false
-    @dbRef = new Firebase "https://brilliant-fire-736.firebaseio.com"
-    @db = @$firebase @dbRef
+
+  uniqueId: (length = 8) ->
+    id = ""
+    id += Math.random().toString(36).substr(2) while id.length < length
+    id.substr 0, length
 
   startGame: =>
-    @db.$add name: "Chas", iq: 200
     @$scope.gameOn = true
     @$scope.currentPlayer = @player()
     @resetBoard()
@@ -46,6 +48,14 @@ class BoardCtrl
     @$scope.theWinnerIs = false
     @$scope.cats = false
     @cells = @$scope.cells = {}
+    @winningCells = @$scope.winningCells = {}
+
+    @unbind() if @unbind
+    @id = @uniqueId()
+    @dbRef = new Firebase "https://brilliant-fire-736.firebaseio.com/#{@id}"
+    @db = @$firebase @dbRef
+    @db.$bind( @$scope, 'cells' ).then (unbind) => @unbind = unbind
+
     @$scope.currentPlayer = @player()
     @getPatterns()
 
@@ -119,8 +129,8 @@ class BoardCtrl
       @announceTie()
 
   mark: (@$event) =>
-    if @$scope.gameOn
-      cell = @$event.target.dataset.index
+    cell = @$event.target.dataset.index
+    if @$scope.gameOn && !@cells[cell]
       @cells[cell] = @player()
       @parseBoard()
       @$scope.currentPlayer = @player()

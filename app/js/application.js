@@ -30,15 +30,21 @@
       this.$scope.mark = this.mark;
       this.$scope.startGame = this.startGame;
       this.$scope.gameOn = false;
-      this.dbRef = new Firebase("https://brilliant-fire-736.firebaseio.com");
-      this.db = this.$firebase(this.dbRef);
     }
 
+    BoardCtrl.prototype.uniqueId = function(length) {
+      var id;
+      if (length == null) {
+        length = 8;
+      }
+      id = "";
+      while (id.length < length) {
+        id += Math.random().toString(36).substr(2);
+      }
+      return id.substr(0, length);
+    };
+
     BoardCtrl.prototype.startGame = function() {
-      this.db.$add({
-        name: "Chas",
-        iq: 200
-      });
       this.$scope.gameOn = true;
       this.$scope.currentPlayer = this.player();
       return this.resetBoard();
@@ -67,6 +73,18 @@
       this.$scope.theWinnerIs = false;
       this.$scope.cats = false;
       this.cells = this.$scope.cells = {};
+      this.winningCells = this.$scope.winningCells = {};
+      if (this.unbind) {
+        this.unbind();
+      }
+      this.id = this.uniqueId();
+      this.dbRef = new Firebase("https://brilliant-fire-736.firebaseio.com/" + this.id);
+      this.db = this.$firebase(this.dbRef);
+      this.db.$bind(this.$scope, 'cells').then((function(_this) {
+        return function(unbind) {
+          return _this.unbind = unbind;
+        };
+      })(this));
       this.$scope.currentPlayer = this.player();
       return this.getPatterns();
     };
@@ -167,8 +185,8 @@
     BoardCtrl.prototype.mark = function($event) {
       var cell;
       this.$event = $event;
-      if (this.$scope.gameOn) {
-        cell = this.$event.target.dataset.index;
+      cell = this.$event.target.dataset.index;
+      if (this.$scope.gameOn && !this.cells[cell]) {
         this.cells[cell] = this.player();
         this.parseBoard();
         return this.$scope.currentPlayer = this.player();
